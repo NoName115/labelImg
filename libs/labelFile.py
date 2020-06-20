@@ -143,4 +143,4 @@ class LabelFile(object):
         if ymin < 1:
             ymin = 1
 
-        return (int(xmin), int(ymin), int(xmax), int(ymax))
+        return round(xmin), round(ymin), round(xmax), round(ymax)

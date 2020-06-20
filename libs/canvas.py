@@ -9,6 +9,7 @@ except ImportError:
 
 #from PyQt4.QtOpenGL import *
 
+import math
 from libs.shape import Shape
 from libs.utils import distance
 
@@ -523,6 +524,7 @@ class Canvas(QWidget):
             return
 
         self.current.close()
+        self.current.points = [QPointF(p.x(), math.floor(p.y())) for p in self.current.points]
         self.shapes.append(self.current)
         self.current = None
         self.setHiding(False)
