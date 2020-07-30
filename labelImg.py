@@ -46,6 +46,9 @@ from libs.yolo_io import TXT_EXT
 from libs.ustr import ustr
 from libs.hashableQListWidgetItem import HashableQListWidgetItem
 
+# aiviro
+from libs.imageAnnotation import annotate_image, create_database, load_database
+
 __appname__ = 'labelImg'
 
 class WindowMixin(object):
@@ -107,6 +110,12 @@ class MainWindow(QMainWindow, WindowMixin):
 
         # Main widgets and related state.
         self.labelDialog = LabelDialog(parent=self, listItem=self.labelHist)
+
+        # Sub-image annotation
+        script_folder = os.path.abspath(__file__)
+        self.database_folder = os.path.join(os.path.dirname(script_folder), "data", "sub-img_db/")
+        os.makedirs(self.database_folder, exist_ok=True)
+        self.sub_image_database, self.sub_image_labels = load_database(self.database_folder)
 
         self.itemsToShapes = {}
         self.shapesToItems = {}
@@ -224,6 +233,9 @@ class MainWindow(QMainWindow, WindowMixin):
 
         verify = action(getStr('verifyImg'), self.verifyImg,
                         'space', 'verify', getStr('verifyImgDetail'))
+
+        create_database = action(getStr('createDatabase'), self.createDatabase,
+                        'space', 'edit', getStr('createDatabaseDetail'))
 
         save = action(getStr('save'), self.saveFile,
                       'Ctrl+S', 'save', getStr('saveDetail'), enabled=False)
@@ -396,7 +408,7 @@ class MainWindow(QMainWindow, WindowMixin):
 
         self.tools = self.toolbar('Tools')
         self.actions.beginner = (
-            open, opendir, changeSavedir, openNextImg, openPrevImg, verify, save, save_format, None, create, copy, delete, None,
+            open, opendir, changeSavedir, openNextImg, openPrevImg, verify, create_database, save, save_format, None, create, copy, delete, None,
             zoomIn, zoom, zoomOut, fitWindow, fitWidth)
 
         self.actions.advanced = (
@@ -1235,22 +1247,17 @@ class MainWindow(QMainWindow, WindowMixin):
             self.fileListWidget.addItem(item)
 
     def verifyImg(self, _value=False):
-        # Proceding next image without dialog if having any label
-        if self.filePath is not None:
-            try:
-                self.labelFile.toggleVerify()
-            except AttributeError:
-                # If the labelling file does not exist yet, create if and
-                # re-save it with the verified attribute.
-                self.saveFile()
-                if self.labelFile != None:
-                    self.labelFile.toggleVerify()
-                else:
-                    return
+        print(f"Annotate image - {self.filePath}")
+        if self.filePath:
+            annotate_image(self.filePath, self.sub_image_database, self.sub_image_labels)
+            self.loadFile(self.filePath)
 
-            self.canvas.verified = self.labelFile.verified
-            self.paintCanvas()
-            self.saveFile()
+    def createDatabase(self):
+        print(f"Create Dabatase - {self.dirname}")
+        if self.dirname:
+            self.sub_image_database, self.sub_image_labels = create_database(
+                self.dirname, self.database_folder
+            )
 
     def openPrevImg(self, _value=False):
         # Proceding prev image without dialog if having any label
