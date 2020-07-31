@@ -268,7 +268,7 @@ def annotate_image(image_path: str, sub_image_db: List[np.ndarray], labels: List
             add_it = True
             for f_box in filtered_results:
                 # Ignore icons in other elements (as this is correct behaviour)
-                if (f_box.label == "icon" and box.label != "icon") or (f_box.label != "icon" and box.label == "icon"):
+                if (f_box.true_label == "icon" and box.true_label != "icon") or (f_box.true_label != "icon" and box.true_label == "icon"):
                     continue
 
                 if is_box_inside(box, f_box):  # At the same place
