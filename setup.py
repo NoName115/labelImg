@@ -90,7 +90,7 @@ setup(
     long_description=readme + '\n\n' + history,
     author="TzuTa Lin",
     author_email='tzu.ta.lin@gmail.com',
-    url='https://github.com/tzutalin/labelImg',
+    url='https://github.com/NoName115/labelImg',
     python_requires=REQUIRES_PYTHON,
     package_dir={'labelImg': '.'},
     packages=required_packages,

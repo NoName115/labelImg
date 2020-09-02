@@ -1,3 +1,0 @@
-pyqt5==5.10.1
-lxml==4.2.4
-git+https://gitlab+deploy-token-17:sDwpsizYDnVxEkZhU1Wt@git.artin.cz/aiviro/aiviro-core@develop
