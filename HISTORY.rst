@@ -1,6 +1,20 @@
 History
 =======
 
+1.8.5 (2021-04-11)
+------------------
+
+* Merged a couple of PRs
+* Fixed issues
+* Support CreateML format
+
+
+1.8.4 (2020-11-04)
+------------------
+
+* Merged a couple of PRs
+* Fixed issues
+
 1.8.2 (2018-12-02)
 ------------------
 
