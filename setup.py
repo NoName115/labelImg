@@ -13,8 +13,8 @@ REQUIRES_PYTHON = '>=3.0.0'
 REQUIRED_DEP = [
     'pyqt5==5.10.1',
     'lxml==4.6.3',
-    'numpy==1.18.5',
-    'opencv-python==4.2.0.34'
+    'numpy',
+    'opencv-python'
 ]
 about = {}
 

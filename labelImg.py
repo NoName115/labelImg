@@ -51,8 +51,7 @@ from libs.create_ml_io import JSON_EXT
 from libs.ustr import ustr
 from libs.hashableQListWidgetItem import HashableQListWidgetItem
 
-# aiviro
-from libs.imageAnnotation import annotate_image, create_database, load_database
+from libs.aiviro_module import auto_annotation
 
 __appname__ = 'labelImg'
 
@@ -124,7 +123,7 @@ class MainWindow(QMainWindow, WindowMixin):
         script_folder = os.path.abspath(__file__)
         self.database_folder = os.path.join(os.path.dirname(script_folder), "data", "sub-img_db/")
         os.makedirs(self.database_folder, exist_ok=True)
-        self.sub_image_database, self.sub_image_labels = load_database(self.database_folder)
+        self.sub_image_database, self.sub_image_labels = auto_annotation.load_database(self.database_folder)
         ##
 
         self.items_to_shapes = {}
@@ -1364,16 +1363,16 @@ class MainWindow(QMainWindow, WindowMixin):
             self.file_list_widget.addItem(item)
 
     def verify_image(self, _value=False):
-        print(f"Annotate image - {self.filePath}")
-        if self.filePath:
-            annotate_image(self.filePath, self.sub_image_database, self.sub_image_labels)
-            self.loadFile(self.filePath)
+        print(f"Annotate image - {self.file_path}")
+        if self.file_path:
+            auto_annotation.annotate_image(self.file_path, self.sub_image_database, self.sub_image_labels)
+            self.load_file(self.file_path)
 
     def create_database(self):
-        print(f"Create Dabatase - {self.dirname}")
-        if self.dirname:
-            self.sub_image_database, self.sub_image_labels = create_database(
-                self.dirname, self.database_folder
+        print(f"Create Dabatase - {self.dir_name}")
+        if self.dir_name:
+            self.sub_image_database, self.sub_image_labels = auto_annotation.create_database(
+                self.dir_name, self.database_folder
             )
 
     def open_prev_image(self, _value=False):

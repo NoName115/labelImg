@@ -5,11 +5,14 @@ import multiprocessing
 import numpy as np
 from datetime import datetime
 from typing import List, Tuple
-from libs import aiviro_utils
+
+from aiviro.utils import bound_box, file_utils, image_utils
+from libs.aiviro_module.utils import MySubimageSearchService
+from libs.aiviro_module.voc_objects import VocAnnotation, VocBuilder
 
 
 def image_process(
-    in_sis: aiviro_utils.MySubimageSearchService,
+    in_sis: MySubimageSearchService,
     org_img: np.ndarray,
     sub_img: np.ndarray,
     indx: int,
@@ -26,12 +29,12 @@ def image_process(
         return ()
 
 
-def is_box_inside(container: aiviro_utils.BoundBox, inside_box: aiviro_utils.BoundBox):
-    return (container.x_min < inside_box.center_point[0] < container.x_max) and\
-        (container.y_min < inside_box.center_point[1] < container.y_max)
+def is_box_inside(container: bound_box.BoundBox, inside_box: bound_box.BoundBox):
+    return (container.x_min < inside_box.center_point.x < container.x_max) and\
+        (container.y_min < inside_box.center_point.y < container.y_max)
 
 
-sis = aiviro_utils.MySubimageSearchService()
+sis = MySubimageSearchService()
 
 
 def annotate_image(image_path: str, sub_image_db: List[np.ndarray], labels: List[str]):
@@ -41,9 +44,9 @@ def annotate_image(image_path: str, sub_image_db: List[np.ndarray], labels: List
 
     s_time = time.time()
     file_name = os.path.splitext(os.path.basename(image_path))[0]
-    img_to_annotate = aiviro_utils.load_image(image_path)
+    img_to_annotate = file_utils.load_image(image_path)
 
-    new_voc_annot = aiviro_utils.VocBuilder(
+    new_voc_annot = VocBuilder(
         os.path.dirname(image_path),
         os.path.basename(image_path),
         image_path,
@@ -103,9 +106,9 @@ def create_database(xml_folder: str, database_folder: str) -> Tuple[List[np.ndar
     u_boxes = []
 
     for xml_file in xml_files:
-        voc_annot = aiviro_utils.VocAnnotation(os.path.join(xml_folder, xml_file))
+        voc_annot = VocAnnotation(os.path.join(xml_folder, xml_file))
         for box in voc_annot.boxes:
-            h = aiviro_utils.image_perceptual_hash(box.img, hash_size=15)
+            h = image_utils.image_perceptual_hash(box.img, hash_size=15)
             if h in u_hashes:
                 continue
 
@@ -118,7 +121,7 @@ def create_database(xml_folder: str, database_folder: str) -> Tuple[List[np.ndar
     sub_images_labels: List[str] = []
     # Create sub-image database
     for box in u_boxes:
-        aiviro_utils.save_image(
+        file_utils.save_image(
             os.path.join(
                 database_folder,
                 box.true_label + "_subimg_" + datetime.now().isoformat() + ".png"
@@ -137,6 +140,6 @@ def load_database(database_folder: str) -> Tuple[List[np.ndarray], List[str]]:
 
     for sub_img in filter(lambda x: x.endswith(".png"), os.listdir(database_folder)):
         sub_images_labels.append(sub_img.split("_")[0])
-        sub_images.append(aiviro_utils.load_image(os.path.join(database_folder, sub_img)))
+        sub_images.append(file_utils.load_image(os.path.join(database_folder, sub_img)))
 
     return sub_images, sub_images_labels
