@@ -327,9 +327,26 @@ class MainWindow(QMainWindow, WindowMixin):
         labels.setText(getStr('showHide'))
         labels.setShortcut('Ctrl+Shift+L')
 
+        upscale_item = action(
+            getStr('upscaleItem'),
+            self.upscaleItem,
+            'Ctrl+T',
+            'zoom-in',
+            getStr('upscaleItemDetail'),
+            enabled=False
+        )
+        downscale_item = action(
+            getStr('downscaleItem'),
+            self.downscaleItem,
+            'Ctrl+G',
+            'zoom-out',
+            getStr('downscaleItemDetail'),
+            enabled=False
+        )
+
         # Label list context menu.
         labelMenu = QMenu()
-        addActions(labelMenu, (edit, delete))
+        addActions(labelMenu, (edit, delete, upscale_item, downscale_item))
         self.labelList.setContextMenuPolicy(Qt.CustomContextMenu)
         self.labelList.customContextMenuRequested.connect(
             self.popLabelListMenu)
@@ -354,12 +371,13 @@ class MainWindow(QMainWindow, WindowMixin):
                               beginner=(), advanced=(),
                               editMenu=(edit, copy, delete,
                                         None, color1, self.drawSquaresOption),
-                              beginnerContext=(create, edit, copy, delete),
+                              beginnerContext=(create, edit, copy, delete, upscale_item, downscale_item),
                               advancedContext=(createMode, editMode, edit, copy,
                                                delete, shapeLineColor, shapeFillColor),
                               onLoadActive=(
                                   close, create, createMode, editMode),
-                              onShapesPresent=(saveAs, hideAll, showAll))
+                              onShapesPresent=(saveAs, hideAll, showAll),
+                              upscale_item=upscale_item, downscale_item=downscale_item)
 
         self.menus = struct(
             file=self.menu('&File'),
@@ -679,6 +697,28 @@ class MainWindow(QMainWindow, WindowMixin):
     def popLabelListMenu(self, point):
         self.menus.labelList.exec_(self.labelList.mapToGlobal(point))
 
+    def _scaleItem(self, scale: int):
+        if not self.canvas.editing():
+            return
+        item = self.currentItem()
+        if not item:
+            return
+
+        shape = self.itemsToShapes[item]
+        shape.moveVertexBy(0, QPointF(-1 * scale, -1 * scale))
+        shape.moveVertexBy(1, QPointF(1 * scale, -1 * scale))
+        shape.moveVertexBy(2, QPointF(1 * scale, 1 * scale))
+        shape.moveVertexBy(3, QPointF(-1 * scale, 1 * scale))
+
+        self.setDirty()
+        self.updateComboBox()
+
+    def upscaleItem(self):
+        self._scaleItem(1)
+
+    def downscaleItem(self):
+        self._scaleItem(-1)
+
     def editLabel(self):
         if not self.canvas.editing():
             return
@@ -740,6 +780,8 @@ class MainWindow(QMainWindow, WindowMixin):
         self.actions.delete.setEnabled(selected)
         self.actions.copy.setEnabled(selected)
         self.actions.edit.setEnabled(selected)
+        self.actions.upscale_item.setEnabled(selected)
+        self.actions.downscale_item.setEnabled(selected)
         self.actions.shapeLineColor.setEnabled(selected)
         self.actions.shapeFillColor.setEnabled(selected)
 
