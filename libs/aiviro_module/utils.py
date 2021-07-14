@@ -1,10 +1,21 @@
-from typing import List
-
 import cv2
 import numpy as np
+from typing import List
 from aiviro.utils import bound_box
 from aiviro.utils.bound_box import BoundBox
 from aiviro.constants.ui_constants import AiviroCoreElementLabels
+
+
+KNOWN_LABELS = [
+    "textbutton",
+    "texticonbutton",
+    "icon",
+    "input",
+    "textarea",
+    "checkbox",
+    "radiobutton",
+    "toggle",
+]
 
 
 class MyBox(BoundBox):
@@ -12,9 +23,14 @@ class MyBox(BoundBox):
         self.true_label = label
         if label in ["texticonbutton", "textbutton"]:
             label = "button"
+        if label not in KNOWN_LABELS:
+            label = "n/a"
 
         super().__init__(xm, ym, xmx, ymx, AiviroCoreElementLabels(label))
         self.img = img
+
+    def __str__(self) -> str:
+        return f"<{self.true_label} {[self.x_min, self.y_min]},{[self.x_max, self.y_max]}/>"
 
     def __hash__(self) -> int:
         return hash((self.x_min, self.y_min, self.x_max, self.y_max, self.true_label))

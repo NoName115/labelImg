@@ -51,7 +51,8 @@ from libs.create_ml_io import JSON_EXT
 from libs.ustr import ustr
 from libs.hashableQListWidgetItem import HashableQListWidgetItem
 
-from libs.aiviro_module import auto_annotation
+from libs.aiviro_module import auto_annotation, check_annotation
+from libs.aiviro_module.utils import MyBox
 
 __appname__ = 'labelImg'
 
@@ -242,7 +243,7 @@ class MainWindow(QMainWindow, WindowMixin):
                                  'a', 'prev', get_str('prevImgDetail'))
 
         verify = action(get_str('verifyImg'), self.verify_image,
-                        'space', 'verify', get_str('verifyImgDetail'))
+                        'space', 'done', get_str('verifyImgDetail'))
 
         save = action(get_str('save'), self.save_file,
                       'Ctrl+S', 'save', get_str('saveDetail'), enabled=False)
@@ -250,6 +251,8 @@ class MainWindow(QMainWindow, WindowMixin):
         ## AIVIRO
         create_database = action(get_str('createDatabase'), self.create_database,
                         'space', 'edit', get_str('createDatabaseDetail'))
+        annotate_img = action(get_str('annotateImg'), self.annotate_image,
+                             None, 'verify', get_str('annotateImgDetail'))
         ##
 
         def get_format_meta(format):
@@ -363,7 +366,6 @@ class MainWindow(QMainWindow, WindowMixin):
             tip=get_str('upscaleItemDetail'),
             enabled=False
         )
-        upscale_item.setShortcut('Ctrl+T')
         downscale_item = action(
             get_str('downscaleItem'),
             self.downscaleItem,
@@ -455,11 +457,11 @@ class MainWindow(QMainWindow, WindowMixin):
 
         self.tools = self.toolbar('Tools')
         self.actions.beginner = (
-            open, open_dir, change_save_dir, open_next_image, open_prev_image, verify, create_database, save, save_format, None, create, copy, delete, None,
+            open, open_dir, change_save_dir, open_next_image, open_prev_image, create_database, annotate_img, verify, save, None, create, copy, delete, None,
             zoom_in, zoom, zoom_out, fit_window, fit_width)
 
         self.actions.advanced = (
-            open, open_dir, change_save_dir, open_next_image, open_prev_image, save, save_format, None,
+            open, open_dir, change_save_dir, open_next_image, open_prev_image, save, None,
             create_mode, edit_mode, None,
             hide_all, show_all)
 
@@ -1362,14 +1364,47 @@ class MainWindow(QMainWindow, WindowMixin):
             item = QListWidgetItem(imgPath)
             self.file_list_widget.addItem(item)
 
-    def verify_image(self, _value=False):
+    def annotate_image(self):
         print(f"Annotate image - {self.file_path}")
         if self.file_path:
             auto_annotation.annotate_image(self.file_path, self.sub_image_database, self.sub_image_labels)
             self.load_file(self.file_path)
 
+    def verify_image(self, _value=False):
+        print(f"Verify image - {self.file_path}")
+        if self.file_path:
+            # convert shapes into bound-boxes
+            boxes = [
+                MyBox(
+                    round(shape[0].x()),
+                    round(shape[0].y()),
+                    round(shape[2].x()),
+                    round(shape[2].y()),
+                    shape.label
+                )
+                for shape in list(self.items_to_shapes.values())
+            ]
+
+            annot = check_annotation.AnnotationChecker(boxes)
+            annot.check_all()
+
+            msg = QMessageBox()
+            msg.setWindowTitle('Verification of the annotations')
+
+            if annot.is_valid:
+                msg.setText("Everything looks OK.")
+                msg.setIcon(QMessageBox.Information)
+                msg.setStandardButtons(QMessageBox.Ok)
+            else:
+                msg.setText("Some annotations are incorrect, click Show Details for more info.")
+                msg.setIcon(QMessageBox.Critical)
+                msg.setStandardButtons(QMessageBox.Ok)
+                msg.setDetailedText('\n'.join(annot.messages))
+
+            msg.exec()
+
     def create_database(self):
-        print(f"Create Dabatase - {self.dir_name}")
+        print(f"Create DB - {self.dir_name}")
         if self.dir_name:
             self.sub_image_database, self.sub_image_labels = auto_annotation.create_database(
                 self.dir_name, self.database_folder
