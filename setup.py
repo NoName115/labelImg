@@ -14,7 +14,8 @@ REQUIRED_DEP = [
     'pyqt5==5.10.1',
     'lxml==4.6.3',
     'numpy',
-    'opencv-python'
+    'opencv-python',
+    'aiviro-core'
 ]
 about = {}
 
@@ -105,6 +106,7 @@ setup(
     },
     include_package_data=True,
     install_requires=REQUIRED_DEP,
+    dependency_links=["https://pypi.aiviro.com/simple/aiviro-core/"],
     license="MIT license",
     zip_safe=False,
     keywords='labelImg labelTool development annotation deeplearning',

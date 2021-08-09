@@ -52,10 +52,46 @@ Python 3 + Qt5
 .. code:: shell
 
     sudo apt-get install pyqt5-dev-tools
-    sudo pip3 install -r requirements/requirements-linux-python3.txt
+    python3 -m venv venv
+    source venv/bin/activate
+    pip install -r requirements/requirements-linux-python3.txt
     make qt5py3
+
     python3 labelImg.py
     python3 labelImg.py [IMAGE_PATH] [PRE-DEFINED CLASS FILE]
+
+Windows
+^^^^^^^
+
+Install `Python <https://www.python.org/downloads/windows/>`__, (dont forget to check option during installation, *Add Python into PATH* !)
+`PyQt5 <https://www.riverbankcomputing.com/software/pyqt/download5>`__
+and `install lxml <http://lxml.de/installation.html>`__.
+
+Open cmd and go to the `labelImg <#labelimg>`__ directory
+
+.. code:: shell
+
+    pip install pyqt5
+    pyrcc5 -o libs/resources.py resources.qrc
+    python setup.py install
+
+    python labelImg.py
+    python labelImg.py [IMAGE_PATH] [PRE-DEFINED CLASS FILE]
+
+Windows + Anaconda
+^^^^^^^^^^^^^^^^^^
+
+Download and install `Anaconda <https://www.anaconda.com/download/#download>`__ (Python 3+)
+
+Open the Anaconda Prompt and go to the `labelImg <#labelimg>`__ directory
+
+.. code:: shell
+
+    conda install pyqt=5
+    conda install -c anaconda lxml
+    pyrcc5 -o libs/resources.py resources.qrc
+    python labelImg.py
+    python labelImg.py [IMAGE_PATH] [PRE-DEFINED CLASS FILE]
 
 macOS
 ^^^^^
@@ -92,37 +128,7 @@ Virtualenv can avoid a lot of the QT / Python version issues
 Note: The Last command gives you a nice .app file with a new SVG Icon in your /Applications folder. You can consider using the script: build-tools/build-for-macos.sh
 
 
-Windows
-^^^^^^^
 
-Install `Python <https://www.python.org/downloads/windows/>`__,
-`PyQt5 <https://www.riverbankcomputing.com/software/pyqt/download5>`__
-and `install lxml <http://lxml.de/installation.html>`__.
-
-Open cmd and go to the `labelImg <#labelimg>`__ directory
-
-.. code:: shell
-
-    pyrcc4 -o libs/resources.py resources.qrc
-    For pyqt5, pyrcc5 -o libs/resources.py resources.qrc
-
-    python labelImg.py
-    python labelImg.py [IMAGE_PATH] [PRE-DEFINED CLASS FILE]
-
-Windows + Anaconda
-^^^^^^^^^^^^^^^^^^
-
-Download and install `Anaconda <https://www.anaconda.com/download/#download>`__ (Python 3+)
-
-Open the Anaconda Prompt and go to the `labelImg <#labelimg>`__ directory
-
-.. code:: shell
-
-    conda install pyqt=5
-    conda install -c anaconda lxml
-    pyrcc5 -o libs/resources.py resources.qrc
-    python labelImg.py
-    python labelImg.py [IMAGE_PATH] [PRE-DEFINED CLASS FILE]
 
 Get from PyPI but only python3.0 or above
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
