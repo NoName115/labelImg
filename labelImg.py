@@ -499,7 +499,8 @@ class MainWindow(QMainWindow, WindowMixin):
                 break
         self.resize(size)
         self.move(position)
-        save_dir = ustr(settings.get(SETTING_SAVE_DIR, None))
+        # save_dir = ustr(settings.get(SETTING_SAVE_DIR, None))
+        save_dir = None
         self.last_open_dir = ustr(settings.get(SETTING_LAST_OPEN_DIR, None))
         if self.default_save_dir is None and save_dir is not None and os.path.exists(save_dir):
             self.default_save_dir = save_dir
