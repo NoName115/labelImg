@@ -21,7 +21,7 @@ class AnnotationChecker:
         self.check_textbutton_does_not_contain_icons()
 
     def check_intersecting_icons(self):
-        ls = LayoutService()
+        ls = LayoutService(robot_id='label-img')
 
         icons = list(filter(lambda box: box.true_label in ['icon', 'checkbox', 'radiobutton'], self._data))
         if icons:
