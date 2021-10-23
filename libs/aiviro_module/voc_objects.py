@@ -81,8 +81,10 @@ class VocAnnotation:
 
     def _process_objects(self, xml_objects: List[Et.Element]):
         boxes = []
-        img = file_utils.load_image(os.path.join(self.folder, self.filename_img))
-        # print(os.path.join(self.folder, self.filename_annot))
+        img_path = os.path.join(self.folder, self.filename_img)
+        img = file_utils.load_image(img_path)
+        if img is None:
+            raise RuntimeError(f"Image not found at: {img_path}")
 
         for obj in xml_objects:
             label = obj.find("name").text
