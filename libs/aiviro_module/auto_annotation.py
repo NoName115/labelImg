@@ -108,7 +108,8 @@ def create_database(xml_folder: str, database_folder: str) -> Tuple[List[np.ndar
     for xml_file in xml_files:
         voc_annot = VocAnnotation(os.path.join(xml_folder, xml_file))
         for box in voc_annot.boxes:
-            h = image_utils.image_perceptual_hash(box.img, hash_size=15)
+            img_hash_size = 5 if box.area < 25 * 25 else 15
+            h = image_utils.image_perceptual_hash(box.img, hash_size=img_hash_size) # 15 - default
             if h in u_hashes:
                 continue
 
