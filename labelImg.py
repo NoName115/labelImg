@@ -243,7 +243,7 @@ class MainWindow(QMainWindow, WindowMixin):
                                  'a', 'prev', get_str('prevImgDetail'))
 
         verify = action(get_str('verifyImg'), self.verify_image,
-                        'space', 'done', get_str('verifyImgDetail'))
+                        'space', 'done', get_str('verifyImgDetail'), enabled=False)
 
         save = action(get_str('save'), self.save_file,
                       'Ctrl+S', 'save', get_str('saveDetail'), enabled=False)
@@ -625,6 +625,7 @@ class MainWindow(QMainWindow, WindowMixin):
     def set_dirty(self):
         self.dirty = True
         self.actions.save.setEnabled(True)
+        self.actions.beginner[7].setEnabled(True)
 
     def set_clean(self):
         self.dirty = False
@@ -1404,6 +1405,7 @@ class MainWindow(QMainWindow, WindowMixin):
                 msg.setDetailedText('\n'.join(annot.messages))
 
             msg.exec()
+            self.actions.beginner[7].setEnabled(False)
 
     def create_database(self):
         print(f"Create DB - {self.dir_name}")
