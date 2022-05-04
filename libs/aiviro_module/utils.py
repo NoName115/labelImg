@@ -65,13 +65,14 @@ class MySubimageSearchService:
 
         # Prepare data
         found_matches: List[bound_box.BoundBox] = []
-        max_object_count = 50  # chosen by agreement
+        max_object_count = 200  # chosen by agreement
 
         # Template matching
         res = cv2.matchTemplate(img_gray, template, cv2.TM_CCOEFF_NORMED)
         loc = np.where(res >= match_threshold)
 
         if len(loc[0]) > max_object_count:
+            print(f"Warning: exceeded - {len(loc[0])}")
             return []
 
         # Construct bounding boxes out of found matches

@@ -108,7 +108,8 @@ def create_database(xml_folder: pathlib.Path, database_folder: pathlib.Path) -> 
     for annot_f in xml_files:
         voc_annot = VocAnnotation(annot_f)
         for box in voc_annot.boxes:
-            h = image_utils.image_perceptual_hash(box.img, hash_size=15)
+            img_hash_size = 5 if box.area < 25 * 25 else 15
+            h = image_utils.image_perceptual_hash(box.img, hash_size=img_hash_size) # 15 - default
             if h in u_hashes:
                 continue
 
@@ -132,12 +133,12 @@ def create_database(xml_folder: pathlib.Path, database_folder: pathlib.Path) -> 
     return sub_images, sub_images_labels
 
 
-def load_database(database_folder: str) -> Tuple[List[np.ndarray], List[str]]:
+def load_database(database_folder: pathlib.Path) -> Tuple[List[np.ndarray], List[str]]:
     sub_images: List[np.ndarray] = []
     sub_images_labels: List[str] = []
 
-    for sub_img in filter(lambda x: x.endswith(".png"), os.listdir(database_folder)):
-        sub_images_labels.append(sub_img.split("_")[0])
-        sub_images.append(file_utils.load_image(os.path.join(database_folder, sub_img)))
+    for img_path in database_folder.glob("*.png"):
+        sub_images_labels.append(img_path.stem.split("_")[0])
+        sub_images.append(file_utils.load_image(str(img_path)))
 
     return sub_images, sub_images_labels

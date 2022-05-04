@@ -15,7 +15,7 @@ REQUIRED_DEP = [
     'lxml==4.6.3',
     'numpy',
     'opencv-python',
-    'aiviro-core==2.5.0'
+    'aiviro-core==2.6.1'
 ]
 about = {}
 

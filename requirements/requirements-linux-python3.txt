@@ -1,4 +1,6 @@
 pyqt5==5.11.3
 lxml==4.6.3
+numpy
+opencv-python
 --extra-index-url https://pypi.aiviro.com
-aiviro-core==2.5.0
+aiviro-core==2.6.1

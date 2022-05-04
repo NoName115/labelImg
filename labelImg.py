@@ -123,7 +123,7 @@ class MainWindow(QMainWindow, WindowMixin):
         ## AIVIRO
         # Sub-image annotation
         script_folder = os.path.abspath(__file__)
-        self.database_folder = os.path.join(os.path.dirname(script_folder), "data", "sub-img_db/")
+        self.database_folder = pathlib.Path(script_folder).parent / "data" / "sub-img_db"
         os.makedirs(self.database_folder, exist_ok=True)
         self.sub_image_database, self.sub_image_labels = auto_annotation.load_database(self.database_folder)
         ##
@@ -244,7 +244,7 @@ class MainWindow(QMainWindow, WindowMixin):
                                  'a', 'prev', get_str('prevImgDetail'))
 
         verify = action(get_str('verifyImg'), self.verify_image,
-                        'space', 'done', get_str('verifyImgDetail'))
+                        'space', 'done', get_str('verifyImgDetail'), enabled=False)
 
         save = action(get_str('save'), self.save_file,
                       'Ctrl+S', 'save', get_str('saveDetail'), enabled=False)
@@ -626,6 +626,7 @@ class MainWindow(QMainWindow, WindowMixin):
     def set_dirty(self):
         self.dirty = True
         self.actions.save.setEnabled(True)
+        self.actions.beginner[7].setEnabled(True)
 
     def set_clean(self):
         self.dirty = False
@@ -925,22 +926,31 @@ class MainWindow(QMainWindow, WindowMixin):
             if self.label_file_format == LabelFileFormat.PASCAL_VOC:
                 if annotation_file_path[-4:].lower() != ".xml":
                     annotation_file_path += XML_EXT
-                self.label_file.save_pascal_voc_format(annotation_file_path, shapes, self.file_path, self.image_data,
-                                                       self.line_color.getRgb(), self.fill_color.getRgb())
+                self.label_file.save_pascal_voc_format(
+                    annotation_file_path, shapes, self.file_path, self.image_data,
+                    self.line_color.getRgb(), self.fill_color.getRgb()
+                )
             elif self.label_file_format == LabelFileFormat.YOLO:
                 if annotation_file_path[-4:].lower() != ".txt":
                     annotation_file_path += TXT_EXT
-                self.label_file.save_yolo_format(annotation_file_path, shapes, self.file_path, self.image_data, self.label_hist,
-                                                 self.line_color.getRgb(), self.fill_color.getRgb())
+                self.label_file.save_yolo_format(
+                    annotation_file_path, shapes, self.file_path, self.image_data, self.label_hist,
+                    self.line_color.getRgb(), self.fill_color.getRgb()
+                )
             elif self.label_file_format == LabelFileFormat.CREATE_ML:
                 if annotation_file_path[-5:].lower() != ".json":
                     annotation_file_path += JSON_EXT
-                self.label_file.save_create_ml_format(annotation_file_path, shapes, self.file_path, self.image_data,
-                                                      self.label_hist, self.line_color.getRgb(), self.fill_color.getRgb())
+                self.label_file.save_create_ml_format(
+                    annotation_file_path, shapes, self.file_path, self.image_data,
+                    self.label_hist, self.line_color.getRgb(), self.fill_color.getRgb()
+                )
             else:
-                self.label_file.save(annotation_file_path, shapes, self.file_path, self.image_data,
-                                     self.line_color.getRgb(), self.fill_color.getRgb())
-            print('Image:{0} -> Annotation:{1}'.format(self.file_path, annotation_file_path))
+                self.label_file.save(
+                    annotation_file_path, shapes, self.file_path, self.image_data,
+                    self.line_color.getRgb(), self.fill_color.getRgb()
+                )
+
+            print(f"Save image: {self.file_path} -> Annotation: {annotation_file_path}")
             return True
         except LabelFileError as e:
             self.error_message(u'Error saving label data', u'<b>%s</b>' % e)
@@ -1137,6 +1147,7 @@ class MainWindow(QMainWindow, WindowMixin):
                                        % (e, unicode_file_path))
                     self.status("Error reading %s" % unicode_file_path)
                     return False
+
                 self.image_data = self.label_file.image_data
                 self.line_color = QColor(*self.label_file.lineColor)
                 self.fill_color = QColor(*self.label_file.fillColor)
@@ -1157,12 +1168,14 @@ class MainWindow(QMainWindow, WindowMixin):
                                    u"<p>Make sure <i>%s</i> is a valid image file." % unicode_file_path)
                 self.status("Error reading %s" % unicode_file_path)
                 return False
+
             self.status("Loaded %s" % os.path.basename(unicode_file_path))
             self.image = image
             self.file_path = unicode_file_path
             self.canvas.load_pixmap(QPixmap.fromImage(image))
             if self.label_file:
                 self.load_labels(self.label_file.shapes)
+
             self.set_clean()
             self.canvas.setEnabled(True)
             self.adjust_scale(initial=True)
@@ -1191,10 +1204,10 @@ class MainWindow(QMainWindow, WindowMixin):
 
     def show_bounding_box_from_annotation_file(self, file_path):
         if self.default_save_dir is not None:
-            basename = os.path.basename(os.path.splitext(file_path)[0])
-            xml_path = os.path.join(self.default_save_dir, basename + XML_EXT)
-            txt_path = os.path.join(self.default_save_dir, basename + TXT_EXT)
-            json_path = os.path.join(self.default_save_dir, basename + JSON_EXT)
+            pf_path = pathlib.Path(file_path)
+            xml_path = os.path.join(pf_path.parent, pf_path.stem + XML_EXT)
+            txt_path = os.path.join(pf_path.parent, pf_path.stem + TXT_EXT)
+            json_path = os.path.join(pf_path.parent, pf_path.stem + JSON_EXT)
 
             """Annotation file priority:
             PascalXML > YOLO
@@ -1205,7 +1218,6 @@ class MainWindow(QMainWindow, WindowMixin):
                 self.load_yolo_txt_by_filename(txt_path)
             elif os.path.isfile(json_path):
                 self.load_create_ml_json_by_filename(json_path, file_path)
-
         else:
             xml_path = os.path.splitext(file_path)[0] + XML_EXT
             txt_path = os.path.splitext(file_path)[0] + TXT_EXT
@@ -1347,7 +1359,9 @@ class MainWindow(QMainWindow, WindowMixin):
                                                                     QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks))
         else:
             target_dir_path = ustr(default_open_dir_path)
+
         self.last_open_dir = target_dir_path
+        self.default_save_dir = target_dir_path
         self.import_dir_images(target_dir_path)
 
     def import_dir_images(self, dir_path):
@@ -1368,7 +1382,11 @@ class MainWindow(QMainWindow, WindowMixin):
     def annotate_image(self):
         print(f"Annotate image - {self.file_path}")
         if self.file_path:
-            auto_annotation.annotate_image(pathlib.Path(self.file_path), self.sub_image_database, self.sub_image_labels)
+            auto_annotation.annotate_image(
+                pathlib.Path(self.file_path),
+                self.sub_image_database,
+                self.sub_image_labels
+            )
             self.load_file(self.file_path)
 
     def verify_image(self, _value=False):
@@ -1403,6 +1421,7 @@ class MainWindow(QMainWindow, WindowMixin):
                 msg.setDetailedText('\n'.join(annot.messages))
 
             msg.exec()
+            self.actions.beginner[7].setEnabled(False)
 
     def create_database(self):
         print(f"Create DB - {self.dir_name}")
@@ -1481,15 +1500,12 @@ class MainWindow(QMainWindow, WindowMixin):
     def save_file(self, _value=False):
         if self.default_save_dir is not None and len(ustr(self.default_save_dir)):
             if self.file_path:
-                image_file_name = os.path.basename(self.file_path)
-                saved_file_name = os.path.splitext(image_file_name)[0]
-                saved_path = os.path.join(ustr(self.default_save_dir), saved_file_name)
+                pf_path = pathlib.Path(self.file_path)
+                saved_path = os.path.join(pf_path.parent, pf_path.stem)
                 self._save_file(saved_path)
         else:
-            image_file_dir = os.path.dirname(self.file_path)
-            image_file_name = os.path.basename(self.file_path)
-            saved_file_name = os.path.splitext(image_file_name)[0]
-            saved_path = os.path.join(image_file_dir, saved_file_name)
+            pf_path = pathlib.Path(self.file_path)
+            saved_path = os.path.join(pf_path.parent, pf_path.stem)
             self._save_file(saved_path if self.label_file
                             else self.save_file_dialog(remove_ext=False))
 
@@ -1645,7 +1661,6 @@ class MainWindow(QMainWindow, WindowMixin):
         self.set_format(FORMAT_YOLO)
         t_yolo_parse_reader = YoloReader(txt_path, self.image)
         shapes = t_yolo_parse_reader.get_shapes()
-        print(shapes)
         self.load_labels(shapes)
         self.canvas.verified = t_yolo_parse_reader.verified
 

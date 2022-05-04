@@ -1,5 +1,5 @@
 import pathlib
-from typing import List
+from typing import List, Optional
 from xml.dom import minidom
 from xml.etree import ElementTree as Et
 
@@ -53,21 +53,21 @@ class VocBuilder:
             out.write(pretty)
 
     @staticmethod
-    def sub_elem(parent, tag, text=None):
+    def sub_elem(parent: Et.Element, tag: Optional[str], text: Optional[str] = None):
         sub = Et.SubElement(parent, tag)
-        if tag != None:
+        if tag is not None:
             sub.text = text
         return sub
 
 
 class VocAnnotation:
-    def __init__(self, file_path: pathlib.Path):
-        tree = Et.parse(file_path)
+    def __init__(self, xml_file_path: pathlib.Path):
+        tree = Et.parse(xml_file_path)
         root = tree.getroot()
 
-        self.filename_annot = file_path.name
+        self.filename_annot = xml_file_path.name
 
-        self.folder = file_path.parent  # root.find("folder").text
+        self.folder = xml_file_path.parent  # root.find("folder").text
         self.filename_img = root.find("filename").text
         self.path = root.find("path").text
 
@@ -79,7 +79,11 @@ class VocAnnotation:
 
     def _process_objects(self, xml_objects: List[Et.Element]):
         boxes = []
-        img = file_utils.load_image(str(self.folder / self.filename_img))
+
+        img_path = self.folder / self.filename_img
+        img = file_utils.load_image(str(img_path))
+        if img is None:
+            raise RuntimeError(f"Image not found at: {img_path}")
 
         for obj in xml_objects:
             label = obj.find("name").text
