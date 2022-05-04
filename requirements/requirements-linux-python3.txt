@@ -1,4 +1,4 @@
-pyqt5==5.10.1
+pyqt5==5.11.3
 lxml==4.6.3
 --extra-index-url https://pypi.aiviro.com
 aiviro-core==2.5.0

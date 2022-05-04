@@ -1,6 +1,6 @@
 import os
 import time
-import glob
+import pathlib
 import multiprocessing
 import numpy as np
 from datetime import datetime
@@ -37,18 +37,16 @@ def is_box_inside(container: bound_box.BoundBox, inside_box: bound_box.BoundBox)
 sis = MySubimageSearchService()
 
 
-def annotate_image(image_path: str, sub_image_db: List[np.ndarray], labels: List[str]):
+def annotate_image(image_path: pathlib.Path, sub_image_db: List[np.ndarray], labels: List[str]):
     cpus = 4
     if multiprocessing.cpu_count() <= 4:
         cpus = max(multiprocessing.cpu_count() - 1, 1)
 
     s_time = time.time()
-    file_name = os.path.splitext(os.path.basename(image_path))[0]
-    img_to_annotate = file_utils.load_image(image_path)
+    file_name = image_path.stem
+    img_to_annotate = file_utils.load_image(str(image_path))
 
     new_voc_annot = VocBuilder(
-        os.path.dirname(image_path),
-        os.path.basename(image_path),
         image_path,
         img_to_annotate.shape[1],
         img_to_annotate.shape[0]
@@ -89,24 +87,26 @@ def annotate_image(image_path: str, sub_image_db: List[np.ndarray], labels: List
             box.x_min, box.y_min,
             box.x_max, box.y_max
         )
-    new_voc_annot.save(os.path.join(os.path.dirname(image_path), file_name + ".xml"))
+
+    new_voc_annot.save(image_path.parent / f"{file_name}.xml")
     print(f"\tEvaluation time: {time.time() - s_time} s.")
 
 
-def create_database(xml_folder: str, database_folder: str) -> Tuple[List[np.ndarray], List[str]]:
+def create_database(xml_folder: pathlib.Path, database_folder: pathlib.Path) -> Tuple[List[np.ndarray], List[str]]:
     # Delete old database
-    for f in glob.glob(f'{os.path.normpath(database_folder)}/*.png'):
+    for f in database_folder.glob("*.png"):
         os.remove(f)
 
-    xml_files = sorted(filter(lambda x: x.endswith(".xml"), os.listdir(xml_folder)))
+    # Get all annotation files
+    xml_files = sorted(xml_folder.glob("**/*.xml"))
     print(f"\tXml files loaded: {len(xml_files)}")
 
     # Find unique boxes
     u_hashes = set()
     u_boxes = []
 
-    for xml_file in xml_files:
-        voc_annot = VocAnnotation(os.path.join(xml_folder, xml_file))
+    for annot_f in xml_files:
+        voc_annot = VocAnnotation(annot_f)
         for box in voc_annot.boxes:
             h = image_utils.image_perceptual_hash(box.img, hash_size=15)
             if h in u_hashes:
@@ -120,12 +120,10 @@ def create_database(xml_folder: str, database_folder: str) -> Tuple[List[np.ndar
     sub_images: List[np.ndarray] = []
     sub_images_labels: List[str] = []
     # Create sub-image database
-    for box in u_boxes:
+    for i, box in enumerate(u_boxes):
+        img_name = box.true_label + f"_subimg_{i}_" + datetime.now().strftime("%d-%m-%Y_%H-%M-%S") + ".png"
         file_utils.save_image(
-            os.path.join(
-                database_folder,
-                box.true_label + "_subimg_" + datetime.now().isoformat() + ".png"
-            ),
+            str(database_folder / img_name),
             box.img
         )
         sub_images.append(box.img)

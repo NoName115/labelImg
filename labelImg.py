@@ -10,6 +10,7 @@ import sys
 import subprocess
 import shutil
 import webbrowser as wb
+import pathlib
 
 from functools import partial
 from collections import defaultdict
@@ -1367,7 +1368,7 @@ class MainWindow(QMainWindow, WindowMixin):
     def annotate_image(self):
         print(f"Annotate image - {self.file_path}")
         if self.file_path:
-            auto_annotation.annotate_image(self.file_path, self.sub_image_database, self.sub_image_labels)
+            auto_annotation.annotate_image(pathlib.Path(self.file_path), self.sub_image_database, self.sub_image_labels)
             self.load_file(self.file_path)
 
     def verify_image(self, _value=False):
@@ -1407,7 +1408,7 @@ class MainWindow(QMainWindow, WindowMixin):
         print(f"Create DB - {self.dir_name}")
         if self.dir_name:
             self.sub_image_database, self.sub_image_labels = auto_annotation.create_database(
-                self.dir_name, self.database_folder
+                pathlib.Path(self.dir_name), pathlib.Path(self.database_folder)
             )
 
     def open_prev_image(self, _value=False):

@@ -1,4 +1,4 @@
-import os
+import pathlib
 from typing import List
 from xml.dom import minidom
 from xml.etree import ElementTree as Et
@@ -8,14 +8,12 @@ from libs.aiviro_module.utils import MyBox
 
 
 class VocBuilder:
-    def __init__(self, folder, filename, fullpath, width, height):
-
+    def __init__(self, file_path: pathlib.Path, width: int, height: int):
         etop = Et.Element("annotation")
 
-        self.sub_elem(etop, "folder", folder)
-
-        self.sub_elem(etop, "filename", filename)
-        self.sub_elem(etop, "path", fullpath)
+        self.sub_elem(etop, "folder", str(file_path.parent))
+        self.sub_elem(etop, "filename", str(file_path.name))
+        self.sub_elem(etop, "path", str(file_path))
 
         esource = self.sub_elem(etop, "source")
         self.sub_elem(esource, "database", "Unknown")
@@ -29,7 +27,7 @@ class VocBuilder:
 
         self.top = etop
 
-    def add(self, name, left, top, right, bottom, pose="Unspecified"):
+    def add(self, name: str, left: int, top: int, right: int, bottom: int, pose: str = "Unspecified"):
         etop = self.top
         eobject = self.sub_elem(etop, "object")
 
@@ -47,11 +45,11 @@ class VocBuilder:
 
         return self
 
-    def save(self, outfile, indent="    "):
+    def save(self, output_file: pathlib.Path, indent="    "):
         # reparse using minidom for indentation
         rough = Et.tostring(self.top, "utf-8")
         pretty = minidom.parseString(rough).documentElement.toprettyxml(indent=indent)
-        with open(outfile, "w") as out:
+        with open(output_file, "w") as out:
             out.write(pretty)
 
     @staticmethod
@@ -63,13 +61,13 @@ class VocBuilder:
 
 
 class VocAnnotation:
-    def __init__(self, filename: str):
-        tree = Et.parse(filename)
+    def __init__(self, file_path: pathlib.Path):
+        tree = Et.parse(file_path)
         root = tree.getroot()
 
-        self.filename_annot = os.path.basename(filename)
+        self.filename_annot = file_path.name
 
-        self.folder = os.path.dirname(filename)  # root.find("folder").text
+        self.folder = file_path.parent  # root.find("folder").text
         self.filename_img = root.find("filename").text
         self.path = root.find("path").text
 
@@ -81,19 +79,16 @@ class VocAnnotation:
 
     def _process_objects(self, xml_objects: List[Et.Element]):
         boxes = []
-        img = file_utils.load_image(os.path.join(self.folder, self.filename_img))
-        # print(os.path.join(self.folder, self.filename_annot))
+        img = file_utils.load_image(str(self.folder / self.filename_img))
 
         for obj in xml_objects:
             label = obj.find("name").text
-            # if label in ["texticonbutton", "textbutton"]:
-            #    label = "button"
 
-            bndbox = obj.find("bndbox")
-            x_min = int(bndbox.find("xmin").text)
-            y_min = int(bndbox.find("ymin").text)
-            x_max = int(bndbox.find("xmax").text)
-            y_max = int(bndbox.find("ymax").text)
+            b_box = obj.find("bndbox")
+            x_min = int(b_box.find("xmin").text)
+            y_min = int(b_box.find("ymin").text)
+            x_max = int(b_box.find("xmax").text)
+            y_max = int(b_box.find("ymax").text)
 
             box = MyBox(
                 x_min, y_min, x_max, y_max, label, img[y_min:y_max, x_min:x_max]

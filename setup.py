@@ -11,11 +11,11 @@ here = os.path.abspath(os.path.dirname(__file__))
 NAME = 'labelImg'
 REQUIRES_PYTHON = '>=3.0.0'
 REQUIRED_DEP = [
-    'pyqt5==5.10.1',
+    'pyqt5==5.11.3',
     'lxml==4.6.3',
     'numpy',
     'opencv-python',
-    'aiviro-core'
+    'aiviro-core==2.5.0'
 ]
 about = {}
 
